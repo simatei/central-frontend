@@ -15,7 +15,27 @@ except according to the terms contained in the LICENSE file.
     <template v-if="formVersion != null && keys != null">
       <float-row class="table-actions">
         <template #left>
-          <refresh-button :configs="configsForRefresh"/>
+          <form class="form-inline">
+            <div class="form-group">
+              <refresh-button :configs="configsForRefresh"/>
+            </div>
+            <div class="form-group" style="margin-left: 10px;">
+              <span class="icon-filter" style="color: #999; margin-right: 6px;"></span>
+              <span>Filter by</span>
+            </div>
+            <div class="form-group" style="margin-left: 5px; margin-right: 5px;">
+              <select class="form-control">
+                <option value="">Alice Allison</option>
+              </select>
+            </div>
+            <date-range-picker v-model="dateRange"
+              :placeholder="$t('field.dateRange')"/>
+            <div class="form-group" style="margin-left: 10px;">
+              <select class="form-control">
+                <option value="">4 of 20 columns shown</option>
+              </select>
+            </div>
+          </form>
         </template>
         <template #right>
           <a v-if="managedKey == null" id="submission-list-download-button"
@@ -59,6 +79,9 @@ except according to the terms contained in the LICENSE file.
 </template>
 
 <script>
+import { DateTime } from 'luxon';
+
+import DateRangePicker from '../date-range-picker.vue';
 import FloatRow from '../float-row.vue';
 import Form from '../../presenters/form';
 import Loading from '../loading.vue';
@@ -76,6 +99,7 @@ const MAX_SMALL_CHUNKS = 4;
 export default {
   name: 'SubmissionList',
   components: {
+    DateRangePicker,
     FloatRow,
     Loading,
     RefreshButton,
@@ -119,6 +143,10 @@ export default {
       // The number of chunks that have been fetched since the initial fetch or
       // last refresh
       chunkCount: 0,
+      dateRange: [
+        DateTime.local().startOf('day').minus({ days: 6 }),
+        DateTime.local().startOf('day')
+      ],
       message: null,
       // Modals
       decrypt: {
@@ -153,9 +181,7 @@ export default {
       return `${this.baseUrl}/submissions.csv.zip`;
     },
     downloadButtonText() {
-      return this.formVersion.submissions > 1
-        ? this.$tcn('action.download.withCount', this.formVersion.submissions)
-        : this.$t('action.download.withoutCount');
+      return this.$tcn('action.download.withCount', 10000);
     },
     analyzeDisabled() {
       // If an encrypted form has no submissions, then there will never be
